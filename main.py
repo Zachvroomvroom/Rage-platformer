@@ -1,5 +1,5 @@
 import pygame as pg
-import random
+import random as rn
 from settings import *
 from sprites import *
 
@@ -15,10 +15,19 @@ class Game:
 
     def new(self):
         # start a new game
-        self.all_sprites = pg.sprite.Group()
+        self.all_sprites = pg.sprite.LayeredUpdates()
         self.platforms = pg.sprite.Group()
+        self.clouds = pg.sprite.Group()
         self.player = Player(self)
         self.all_sprites.add(self.player)
+        self.cloud_images = []
+        for i in range(1, 4):
+            filename = "cloud{}.png".format(i)
+            img = pg.image.load(filename)
+            self.cloud_images.append(img)
+        for i in range(8):
+            c = Cloud(self)
+            c.rect.x += 500
         for plat in PLATFORM_LIST:
             p = Platform(*plat)
             self.all_sprites.add(p)
@@ -62,14 +71,19 @@ class Game:
             for plat in self.platforms:
                 plat.rect.x -= abs(self.player.vel.x)
                 if self.player.count > 50:
-                    height = random.randrange(100, 251)
-                    x = random.randrange(WIDTH + 50, WIDTH + 150)
+                    height = rn.randrange(100, 251)
+                    x = rn.randrange(WIDTH + 50, WIDTH + 150)
                     width = x - WIDTH
                     #     y = random.randrange(-75,-30)
                     p = Platform(x, HEIGHT - height, width, height)
                     self.platforms.add(p)
                     self.all_sprites.add(p)
                     self.player.count = 0
+            for clod in self.clouds:
+                clod.rect.x -= abs(self.player.vel.x)
+                if self.player.count > 50:
+                    c = Cloud(self)
+                    c.rect.x += 500
         if self.player.vel.x < -.05:
             self.player.count -= 1
             if self.player.count < 0:
@@ -78,6 +92,9 @@ class Game:
             self.player.pos.x += abs(self.player.vel.x)
             for plat in self.platforms:
                 plat.rect.x += abs(self.player.vel.x)
+        if self.player.rect.left <= WIDTH / 2.5:
+            for clod in self.clouds:
+                clod.rect.x += abs(self.player.vel.x)
 
     def events(self):
         # Game Loop - events

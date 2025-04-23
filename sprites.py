@@ -1,5 +1,6 @@
 # Sprite classes for platform game
 import pygame as pg
+import random as rn
 from settings import *
 vec = pg.math.Vector2
 
@@ -28,6 +29,8 @@ class Player(pg.sprite.Sprite):
         self.animation = 'idle'
 
         self.coyotetime = 0
+        now = pg.time.get_ticks()
+        self.last_update = now
 
     def jump(self):
         now = pg.time.get_ticks()
@@ -52,10 +55,39 @@ class Player(pg.sprite.Sprite):
                 self.dashes_used += 1
 
     def animate(self):
-        pass
+        now = pg.time.get_ticks()
+        if int(self.vel.x) != 0:
+            self.running = True
+        else:
+            self.running = False
+        if 0.05 >= int(self.vel.y) >= -0.05:
+            self.jumping = True
+        else:
+            self.jumping = False
+        if not self.running and not self.jumping:
+            if now - self.last_update > 125:
+                self.last_update = now
+                self.current_frame = (self.current_frame + 1) % len(self.idle_img)
+                self.image = self.idle_img[self.current_frame]
+                self.rect = self.image.get_rect()
+        if self.jumping:
+            self.image = pg.image.load("idle3.png")
+            self.rect = self.image.get_rect()
+        if self.running:
+            if now - self.last_update > 100:
+                self.last_update = now
+                self.current_frame = (self.current_frame + 1) % len(self.run_img_r)
+                if self.vel.x > 0:
+                    self.image = self.run_img_r[self.current_frame]
+                else:
+                    self.image = self.run_img_l[self.current_frame]
+                self.rect = self.image.get_rect()
 
     def load_images(self):
-        pass
+        self.idle1r = pg.image.load("P_Sprites/bunny1")
+        self.idle2r = pg.image.load("P_Sprites/bunny2")
+        self.move1r = pg.image.load("P_Sprites/bunny3")
+        self.move2r = pg.image.load("P_Sprites/bunny4")
 
     def update(self):
         self.acc = vec(0, PLAYER_GRAV)
@@ -83,43 +115,24 @@ class Player(pg.sprite.Sprite):
 
         self.rect.midbottom = self.pos
 
+class Cloud(pg.sprite.Sprite):
+    def __init__(self, game):
+        self._layer = CLOUD_LAYER
+        self.groups = game.all_sprites, game.clouds
+        pg.sprite.Sprite.__init__(self, self.groups)
+        self.game = game
+        self.image = rn.choice(self.game.cloud_images)
+        self.image.set_colorkey(BLACK)
+        # self.image = pg.Surface((w, h))
+        # self.image.fill(GREEN)
+        self.rect = self.image.get_rect()
+        scale = rn.randrange(50, 101) / 100
+        self.image = pg.transform.scale(self.image, (int(self.rect.width * scale), int(self.rect.height * scale)))
+        self.rect.x = rn.randrange(WIDTH + self.rect.width)
+        self.rect.y = rn.randrange(0,100)
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+        def update(self):
+            pass
 
     # def load_images(self):
     #     for i in range(1,4):
@@ -131,7 +144,8 @@ class Platform(pg.sprite.Sprite):
     def __init__(self, x, y, w, h):
         pg.sprite.Sprite.__init__(self)
         self.image = pg.Surface((w, h))
-        self.image.fill(GRASSGREEN)
+        self.image = pg.image.load("normal grass.png")
+        self.image = pg.transform.scale(self.image, (w, h))
         self.rect = self.image.get_rect()
         self.rect.x = x
         self.rect.y = y
