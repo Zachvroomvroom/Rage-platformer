@@ -12,11 +12,20 @@ class Game:
         pg.display.set_caption(TITLE)
         self.clock = pg.time.Clock()
         self.running = True
+        self.font_name = pg.font.match_font('arial')
+
+    def draw_text(self,surf,text,size,x,y,color):
+        font = pg.font.Font(self.font_name, size)
+        text_surface = font.render(text,True,color)
+        text_rect = text_surface.get_rect()
+        text_rect.midtop = (x,y)
+        surf.blit(text_surface,text_rect)
 
     def new(self):
         # start a new game
         self.all_sprites = pg.sprite.LayeredUpdates()
         self.platforms = pg.sprite.Group()
+        self.stars = pg.sprite.Group()
         self.clouds = pg.sprite.Group()
         self.player = Player(self)
         self.all_sprites.add(self.player)
@@ -29,9 +38,10 @@ class Game:
             c = Cloud(self)
             c.rect.x += 500
         for plat in PLATFORM_LIST:
-            p = Platform(*plat)
+            p = Platform(*plat,self)
             self.all_sprites.add(p)
             self.platforms.add(p)
+        self.show_start_screen()
         self.run()
 
     def run(self):
@@ -75,7 +85,7 @@ class Game:
                     x = rn.randrange(WIDTH + 50, WIDTH + 150)
                     width = x - WIDTH
                     #     y = random.randrange(-75,-30)
-                    p = Platform(x, HEIGHT - height, width, height)
+                    p = Platform(x, HEIGHT - height, width, height, self)
                     self.platforms.add(p)
                     self.all_sprites.add(p)
                     self.player.count = 0
@@ -96,6 +106,16 @@ class Game:
             for clod in self.clouds:
                 clod.rect.x += abs(self.player.vel.x)
 
+        sta_hits = pg.sprite.spritecollide(self.player,self.stars,True)
+        for sta in sta_hits:
+            if sta.type == 'boost':
+                self.player.vel.y = -(BOOST_POWER//3)
+                self.player.vel.x = +BOOST_POWER*2
+
+        if self.player.rect.top > HEIGHT:
+            for sprite in self.all_sprites:
+                sprite.rect.y -= max(self.player.vel.y, 10)
+
     def events(self):
         # Game Loop - events
         for event in pg.event.get():
@@ -111,6 +131,7 @@ class Game:
                 if event.key == pg.K_w:
                     self.player.dash()
 
+
     def draw(self):
         # Game Loop - draw
         self.screen.fill(SKYBLUE)
@@ -120,7 +141,28 @@ class Game:
 
     def show_start_screen(self):
         # game splash/start screen
-        pass
+        self.screen.fill(BLUE)
+        time = pg.time.get_ticks()
+        for i in range(500):
+            self.screen.fill(BLUE)
+            self.draw_text(self.screen, 'Bunny hop', 64, 0+i, HEIGHT / 4, WHITE)
+        pg.display.flip()
+        waiting = True
+        while waiting:
+
+            # color = random.choice([RED, WHITE])
+            self.draw_text(self.screen, 'Press A to Begin', 18, WIDTH / 2, HEIGHT * 3 / 4, RED)
+
+
+            pg.display.flip()
+            self.clock.tick(FPS)
+            for event in pg.event.get():
+                keystate = pg.key.get_pressed()
+                if event.type == pg.QUIT:
+                    pg.quit()
+                if event.type == pg.KEYDOWN:
+                    if keystate[pg.K_a]:
+                        waiting = False
 
     def show_go_screen(self):
         # game over/continue

@@ -28,12 +28,16 @@ class Player(pg.sprite.Sprite):
 
         self.animation = 'idle'
 
-        self.coyotetime = 0
+        self.coyotetime = 5000
         now = pg.time.get_ticks()
         self.last_update = now
 
     def jump(self):
+        print("Jump")
         now = pg.time.get_ticks()
+        if now - self.coyotetime >= 5000:
+            now = self.coyotetime
+            print("no jump")
         # jump only if standing on a platform
         self.rect.x += 1
         hits = pg.sprite.spritecollide(self, self.game.platforms, False)
@@ -141,11 +145,33 @@ class Cloud(pg.sprite.Sprite):
     #         self.idle_img.append(img)
 
 class Platform(pg.sprite.Sprite):
-    def __init__(self, x, y, w, h):
-        pg.sprite.Sprite.__init__(self)
+    def __init__(self, x, y, w, h,game):
+        self.groups = game.all_sprites,game.platforms
+        pg.sprite.Sprite.__init__(self,self.groups)
+        self.game = game
         self.image = pg.Surface((w, h))
         self.image = pg.image.load("normal grass.png")
         self.image = pg.transform.scale(self.image, (w, h))
         self.rect = self.image.get_rect()
         self.rect.x = x
         self.rect.y = y
+        if rn.randrange(100)<STAR_SPAWN_PCT:
+            Star(self.game,self)
+
+class Star(pg.sprite.Sprite):
+    def __init__(self, game, plat):
+        self.groups = game.all_sprites, game.stars
+        pg.sprite.Sprite.__init__(self, self.groups)
+        self.game = game
+        self.plat = plat
+        self.type = rn.choice(['boost'])
+        self.image = pg.image.load("Star.PNG")
+        self.image.set_colorkey(BLACK)
+        self.rect = self.image.get_rect()
+        self.rect.centerx = self.plat.rect.centerx
+        self.rect.bottom = self.plat.rect.top - 5
+
+    def update(self):
+        self.rect.bottom = self.plat.rect.top - 5
+        if not self.game.platforms.has(self.plat):
+            self.kill()
