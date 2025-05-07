@@ -12,7 +12,7 @@ class Game:
         pg.display.set_caption(TITLE)
         self.clock = pg.time.Clock()
         self.running = True
-        self.font_name = pg.font.match_font('arial')
+        self.font_name = pg.font.match_font(FONT_NAME)
 
     def draw_text(self,surf,text,size,x,y,color):
         font = pg.font.Font(self.font_name, size)
@@ -23,6 +23,7 @@ class Game:
 
     def new(self):
         # start a new game
+        self.score = 0
         self.all_sprites = pg.sprite.LayeredUpdates()
         self.platforms = pg.sprite.Group()
         self.stars = pg.sprite.Group()
@@ -136,6 +137,7 @@ class Game:
         # Game Loop - draw
         self.screen.fill(SKYBLUE)
         self.all_sprites.draw(self.screen)
+        self.draw_text(self.screen,str(self.score),22,WIDTH//2,15,WHITE)
         # *after* drawing everything, flip the display
         pg.display.flip()
 
