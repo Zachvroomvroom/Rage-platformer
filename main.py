@@ -90,6 +90,7 @@ class Game:
                     self.platforms.add(p)
                     self.all_sprites.add(p)
                     self.player.count = 0
+                    self.score += 1
             for clod in self.clouds:
                 clod.rect.x -= abs(self.player.vel.x)
                 if self.player.count > 50:
