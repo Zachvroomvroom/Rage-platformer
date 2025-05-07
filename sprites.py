@@ -8,7 +8,12 @@ class Player(pg.sprite.Sprite):
     def __init__(self, game):
         pg.sprite.Sprite.__init__(self)
         self.game = game
+        self.width = 40
+        self.height = 40
         self.idle_img = []
+        self.run_img_r = []
+        self.run_img_l = []
+        self.load_images()
         self.image = pg.Surface((30, 40))
         self.image.fill(BLACK)
         self.rect = self.image.get_rect()
@@ -27,6 +32,7 @@ class Player(pg.sprite.Sprite):
         self.jumps_used = 0
 
         self.animation = 'idle'
+        self.current_frame=0
 
         self.coyotetime = 5000
         now = pg.time.get_ticks()
@@ -34,13 +40,15 @@ class Player(pg.sprite.Sprite):
 
     def jump(self):
         print("Jump")
-        now = pg.time.get_ticks()
-        if now - self.coyotetime >= 5000:
-            now = self.coyotetime
-            print("no jump")
+        # now = pg.time.get_ticks()
+        # if now - self.coyotetime >= 5000:
+        #     now = self.coyotetime
+        #     print("no jump")
         # jump only if standing on a platform
         self.rect.x += 1
         hits = pg.sprite.spritecollide(self, self.game.platforms, False)
+        if hits:
+            self.jumps_used =0
         self.rect.x -= 1
         if self.jumps_used < self.jumps:
             self.vel.y = -20
@@ -75,7 +83,8 @@ class Player(pg.sprite.Sprite):
                 self.image = self.idle_img[self.current_frame]
                 self.rect = self.image.get_rect()
         if self.jumping:
-            self.image = pg.image.load("idle3.png")
+            self.image = pg.image.load("P_sprites/bunny3.png")
+            self.image = pg.transform.scale(self.image, (self.width, self.height))
             self.rect = self.image.get_rect()
         if self.running:
             if now - self.last_update > 100:
@@ -88,12 +97,33 @@ class Player(pg.sprite.Sprite):
                 self.rect = self.image.get_rect()
 
     def load_images(self):
-        self.idle1r = pg.image.load("P_Sprites/bunny1")
-        self.idle2r = pg.image.load("P_Sprites/bunny2")
-        self.move1r = pg.image.load("P_Sprites/bunny3")
-        self.move2r = pg.image.load("P_Sprites/bunny4")
+        # self.idle1r = pg.image.load("P_Sprites/bunny1.png")
+        # self.idle2r = pg.image.load("P_Sprites/bunny2")
+        # self.move1r = pg.image.load("P_Sprites/bunny3")
+        # self.move2r = pg.image.load("P_Sprites/bunny4")
+        for i in range(1, 3):
+
+            filename = "P_Sprites/bunny{}.png".format(i)
+
+            img = pg.image.load(filename)
+            img = pg.transform.scale(img, (self.width, self.height))
+            self.idle_img.append(img)
+            # img = pg.transform.flip(img,True,False)
+            # self.run_img_l.append(img)
+
+        for i in range(3, 5):
+
+            filename = "P_Sprites/bunny{}.png".format(i)
+            img = pg.image.load(filename)
+            img = pg.transform.scale(img, (self.width, self.height))
+            self.run_img_r.append(img)
+            img = pg.transform.flip(img,True,False)
+            self.run_img_l.append(img)
+
+
 
     def update(self):
+        self.animate()
         self.acc = vec(0, PLAYER_GRAV)
         keys = pg.key.get_pressed()
         if keys[pg.K_a]:
@@ -132,11 +162,13 @@ class Cloud(pg.sprite.Sprite):
         self.rect = self.image.get_rect()
         scale = rn.randrange(50, 101) / 100
         self.image = pg.transform.scale(self.image, (int(self.rect.width * scale), int(self.rect.height * scale)))
-        self.rect.x = rn.randrange(WIDTH + self.rect.width)
+        self.rect.x = rn.randrange(WIDTH + self.rect.width)+500
         self.rect.y = rn.randrange(0,100)
 
-        def update(self):
-            pass
+    def update(self):
+        if self.rect.right < 0:
+            print('cloud')
+            self.kill()
 
     # def load_images(self):
     #     for i in range(1,4):

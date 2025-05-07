@@ -63,6 +63,7 @@ class Game:
             if hits:
                 self.player.pos.y = hits[0].rect.top
                 self.player.vel.y = 0
+                # self.player.jumping = False
         if self.player.rect.y > HEIGHT:
            self.new()
         # if player reaches to 1/4 of screen
@@ -96,6 +97,8 @@ class Game:
                 if self.player.count > 50:
                     c = Cloud(self)
                     c.rect.x += 500
+        if len(self.clouds) < 6:
+            c = Cloud(self)
         if self.player.vel.x < -.05:
             self.player.count -= 1
             if self.player.count < 0:
